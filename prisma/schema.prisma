@@ -1,0 +1,45 @@
+// Prisma schema pour Finance-MGS
+// Gestion de trésorerie ultra-claire pour petits commerçants en Afrique
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum TransactionType {
+  IN
+  OUT
+}
+
+enum Category {
+  SALE
+  LIFE
+  REINVESTMENT
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String?       @unique
+  currency     String        @default("FCFA")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  amount      Int             // Montant en devise locale (ex: FCFA / GNF / CDF)
+  type        TransactionType // IN = Entrée (Vente), OUT = Sortie (Dépense)
+  category    Category        // SALE = Vente boutique, LIFE = Dépense perso, REINVESTMENT = Réapprovisionnement/Stock
+  description String?
+  createdAt   DateTime        @default(now())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
